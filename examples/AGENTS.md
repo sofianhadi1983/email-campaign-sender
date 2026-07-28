@@ -9,6 +9,7 @@
 - `ses-dg.pdf` owns the Amazon SES developer guide snapshot.
 - `ses-api.pdf` owns the Amazon SES v1 API reference snapshot.
 - `ses-apiv2.pdf` owns the Amazon SES v2 API reference snapshot.
+- `SHA256SUMS` records integrity checksums for downloaded source documents.
 
 ## Local Contracts
 
