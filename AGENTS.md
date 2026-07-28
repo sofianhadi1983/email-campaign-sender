@@ -151,3 +151,4 @@ When the user requests a durable behavior change, record it here or in the relev
 - [`.agents/AGENTS.md`](.agents/AGENTS.md) — repository-scoped Codex skills.
 - [`.codex/AGENTS.md`](.codex/AGENTS.md) — repository-local Codex permissions and configuration.
 - [`PRPs/AGENTS.md`](PRPs/AGENTS.md) — product requirement prompt examples and templates.
+- [`examples/AGENTS.md`](examples/AGENTS.md) — external documentation used by implementation prompts.
