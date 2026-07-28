@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execute PRP"
+  short_description: "Implement and validate a repository PRP"
+  default_prompt: "Use $execute-prp to implement and validate a repository PRP."

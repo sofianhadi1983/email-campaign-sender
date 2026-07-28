@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate PRP"
+  short_description: "Research and create an implementation-ready PRP"
+  default_prompt: "Use $generate-prp to research a feature file and create an implementation-ready PRP."

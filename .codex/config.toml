@@ -1,0 +1,13 @@
+approval_policy = "on-request"
+default_permissions = "project-edit"
+
+[permissions.project-edit]
+description = "Edit this repository with its Codex research domains available."
+extends = ":workspace"
+
+[permissions.project-edit.network]
+enabled = true
+
+[permissions.project-edit.network.domains]
+"developers.openai.com" = "allow"
+"github.com" = "allow"
