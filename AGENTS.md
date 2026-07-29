@@ -142,10 +142,21 @@ Default section order:
 5. Run existing verification when relevant
 6. Report any docs intentionally left unchanged and why
 
+## Project Structure
+
+- `campaign_sender.py` owns CSV import, SQLite campaign state, SES preflight,
+  quota-aware submission, resume behavior, and protected reports.
+- `pyproject.toml` and `uv.lock` own the Python environment and validation
+  toolchain.
+- `README.md` owns AWS prerequisites and operator workflows.
+- Runtime state, campaign inputs, summaries, and failure reports contain
+  customer data and must remain Git-ignored.
+
 ## User Preferences
 
 - Record substantive agent/user exchanges in `SESSION_PROMPTS.md` using
   `agent: <question/statement>` and `me: <reply>` labels.
+- Run Python applications and validation commands through `uv`.
 - When the user requests another durable behavior change, record it here or in
   the relevant child AGENTS.md.
 
@@ -155,3 +166,4 @@ Default section order:
 - [`.codex/AGENTS.md`](.codex/AGENTS.md) — repository-local Codex permissions and configuration.
 - [`PRPs/AGENTS.md`](PRPs/AGENTS.md) — product requirement prompt examples and templates.
 - [`examples/AGENTS.md`](examples/AGENTS.md) — external documentation used by implementation prompts.
+- [`tests/AGENTS.md`](tests/AGENTS.md) — campaign sender test contracts and fixtures.

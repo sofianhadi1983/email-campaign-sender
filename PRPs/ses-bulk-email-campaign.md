@@ -46,10 +46,10 @@ Create a Python 3.11+ command-line script that:
   failure report.
 
 “Finished” means every input row has a definite local outcome:
-`accepted`, `bad_row`, `suppressed`, or `permanent_failure`. `unknown`,
-`retryable`, `retry_exhausted`, `pending`, and `in_flight` remain incomplete
-and produce a nonzero exit. Finished does not mean every message reached an
-inbox.
+`accepted`, `duplicate`, `bad_row`, `suppressed`, or `permanent_failure`.
+`unknown`, `retryable`, `retry_exhausted`, `pending`, and `in_flight` remain
+incomplete and produce a nonzero exit. Finished does not mean every message
+reached an inbox.
 
 ## Why
 
@@ -333,7 +333,7 @@ genuinely difficult to test. The requested product is one script.
 # SES has no idempotency token for SendBulkEmail; exact-once cannot be promised after ambiguous failures.
 # Disable SDK retries so a no-response transport failure is never replayed automatically.
 # Do not issue one GetSuppressedDestination request per customer; that destroys throughput.
-# Preload the account-level suppression list with its paginator, then rely on SES/global events.
+# Preload the account-level suppression list through NextToken pages, then rely on SES/global events.
 # Sending to globally suppressed addresses can consume quota and affect bounce rate.
 # Boto3's SES v2 client is synchronous; use bounded threads, not an unbounded task list.
 # SQLite writes must remain on the coordinator thread to avoid lock contention.
@@ -433,9 +433,10 @@ CREATE INDEX recipient_work
   settings and recipient set before considering bootstrap CLI values; warn
   about changed argument names, ignore their new values, and do not re-import
   the CSV.
-- Insert recipients with chunked `executemany`. Silently deduplicate matching
-  normalized email/name pairs. If one normalized email has conflicting names,
-  mark it `bad_row` and record `duplicate_conflict` so neither version sends.
+- Insert recipients with chunked `executemany`. Record repeated matching
+  normalized email/name pairs as completed `duplicate` input outcomes. If one
+  normalized email has conflicting names, mark it `bad_row` and record
+  `duplicate_conflict` so neither version sends.
 - Normalize the domain to IDNA and lowercase the comparison key. Reject
   addresses with a non-ASCII local part, control characters, missing names, or
   invalid structure. Do not perform per-address DNS lookups.
@@ -444,12 +445,12 @@ CREATE INDEX recipient_work
   failure CSV, never in logs or aggregate summaries.
 - Use a stable failure taxonomy:
   - `stage`: `input` or `submission`.
-  - Input `reason_code`: `missing_email`, `invalid_email`, `missing_name`, or
-    `duplicate_conflict`.
+  - Input `reason_code`: `missing_email`, `invalid_email`, `missing_name`,
+    `duplicate_identical`, or `duplicate_conflict`.
   - Submission `reason_code`: normalized SES entry status, normalized provider
     exception category, `network_timeout`, or `response_length_mismatch`.
-  - `disposition`: `bad_row`, `permanent`, `retryable`, `retry_exhausted`, or
-    `unknown`.
+  - `disposition`: `duplicate`, `bad_row`, `permanent`, `retryable`,
+    `retry_exhausted`, or `unknown`.
   - `detail`: useful sanitized context without names, message bodies,
     credentials, request payloads, or duplicate copies of the address.
 
@@ -473,14 +474,16 @@ CREATE campaign_sender.py:
   - Parse CSV with csv.DictReader and require exactly usable name/email fields.
   - On first use, validate, normalize, hash, and import rows in chunks without
     DNS checks; persist malformed or missing values as bad_row input issues.
-  - Silently deduplicate matching email/name pairs. Mark a normalized address
-    bad_row with reason duplicate_conflict if its names disagree.
+  - Record matching email/name repetitions as completed duplicate outcomes.
+    Mark a normalized address bad_row with reason duplicate_conflict if its
+    names disagree.
   - On resume, use the first stored campaign settings and imported recipients.
     Ignore later bootstrap values, warn using argument names only, and do not
     reopen or re-import the changed CSV.
   - Reset stale in_flight rows to unknown on startup, not retryable.
-  - Load account-level suppressed destinations once through the SES v2 paginator
-    and mark matching pending rows suppressed.
+  - Load account-level suppressed destinations once through the SES v2
+    ListSuppressedDestinations NextToken loop and mark matching pending rows
+    suppressed. This operation has no boto3 paginator.
 
 Task 3: Implement SES client and preflight
 IN campaign_sender.py:
@@ -797,8 +800,8 @@ uv run pytest tests/ -v --cov=campaign_sender --cov-report=term-missing
 
 Required test cases:
 
-- CSV import streams, records malformed/missing values as bad_row, deduplicates
-  equal rows, and excludes conflicting duplicate names.
+- CSV import streams, records malformed/missing values as bad_row, records
+  identical duplicate outcomes, and excludes conflicting duplicate names.
 - One million synthetic rows produce exactly 20,000 full 50-entry batches when
   all rows are unique, valid, and quota permits the entire run.
 - Peak in-memory work queues remain bounded by chunk size and worker limits.

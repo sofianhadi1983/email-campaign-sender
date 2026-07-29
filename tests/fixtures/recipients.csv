@@ -1,0 +1,9 @@
+name,email
+Ada Lovelace,ada@example.com
+Ada Lovelace,ADA@example.com
+Grace Hopper,grace@example.com
+Different Name,grace@example.com
+Unicode Domain,user@bücher.example
+Invalid Address,not-an-email
+,missing-name@example.com
+Missing Email,
