@@ -144,7 +144,10 @@ Default section order:
 
 ## User Preferences
 
-When the user requests a durable behavior change, record it here or in the relevant child AGENTS.md
+- Record substantive agent/user exchanges in `SESSION_PROMPTS.md` using
+  `agent: <question/statement>` and `me: <reply>` labels.
+- When the user requests another durable behavior change, record it here or in
+  the relevant child AGENTS.md.
 
 ## Child DOX Index
 
